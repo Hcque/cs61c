@@ -2,11 +2,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#define get_bit(x, n) ((x >> n) & 1)
 
 void lfsr_calculate(uint16_t *reg) {
-
-  /* YOUR CODE HERE */
-
+  *reg = (*reg << 1) |
+    (get_bit(*reg, 15) ^ get_bit(*reg,13) ^ get_bit(*reg,12) ^ get_bit(*reg, 10)) ;
 }
 
 int main() {
