@@ -1,6 +1,7 @@
 /* Include the system headers we need */
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Include our header */
 #include "vector.h"
@@ -48,16 +49,8 @@ vector_t *vector_new() {
 /* Free up the memory allocated for the passed vector */
 void vector_delete(vector_t *v) {
 	/* Remember, you need to free up ALL the memory that is allocated */
-	
-
-
-
-
-	/* ADD CODE HERE */
-
-
-
-
+	free(v->data);
+	free(v);
 }
 
 /* Return the value in the vector */
@@ -74,6 +67,8 @@ int vector_get(vector_t *v, size_t loc) {
 	/* If the requested location is higher than we have allocated, return 0.
 	 * Otherwise, return what is in the passed location.
 	 */
+
+	printf("size:%d\n", v->size);
 	if(loc < v->size) {
 		return v->data[loc];
 	} else {
@@ -87,12 +82,24 @@ void vector_set(vector_t *v, size_t loc, int value) {
 	/* What do you need to do if the location is greater than the size we have
 	 * allocated?  Remember that unset locations should contain a value of 0.
 	 */
+	if (loc < v->size)
+		*(v->data + loc) = value;
+	else{
+		int* newplace = (int*) malloc(loc*sizeof(int));
+		if (newplace == NULL){
+			free(newplace);
+			printf("malloc failed\n");
+		}
+		
+		memcpy((void*)newplace, (void*)v->data, v->size * sizeof(int));
+		memset((void*)(newplace + v->size), 0, (loc - v->size) * sizeof(int));
 
-
-
-	/* ADD CODE HERE */
-
-
+		free(v->data) ; // free v->data's original pointer;
+		v->data = newplace;
+		v->size = loc;
+		*(v->data + loc) = value;
+		// printf("value: %d\n", value);
+	}
 
 
 }
