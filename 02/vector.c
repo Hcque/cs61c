@@ -67,8 +67,6 @@ int vector_get(vector_t *v, size_t loc) {
 	/* If the requested location is higher than we have allocated, return 0.
 	 * Otherwise, return what is in the passed location.
 	 */
-
-	printf("size:%d\n", v->size);
 	if(loc < v->size) {
 		return v->data[loc];
 	} else {
@@ -98,6 +96,9 @@ void vector_set(vector_t *v, size_t loc, int value) {
 		v->data = newplace;
 		v->size = loc;
 		*(v->data + loc) = value;
+		// for (int j = 0; j<v->size; j++)
+		// 	printf("%d", v->data[j]);
+		// printf("\n");
 		// printf("value: %d\n", value);
 	}
 
