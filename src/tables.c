@@ -33,7 +33,7 @@ void write_symbol(FILE* output, uint32_t addr, const char* name) {
 /*******************************
  * Symbol Table Functions
  *******************************/
-
+const int INIT_SIZE = 1;
 /* Creates a new SymbolTable containg 0 elements and returns a pointer to that
    table. Multiple SymbolTables may exist at the same time. 
    If memory allocation fails, you should call allocation_failed(). 
@@ -42,12 +42,23 @@ void write_symbol(FILE* output, uint32_t addr, const char* name) {
  */
 SymbolTable* create_table(int mode) {
     /* YOUR CODE HERE */
-    return NULL;
+    SymbolTable* symbol_table = malloc(sizeof(SymbolTable));
+    if (symbol_table == NULL)
+        allocation_failed();
+    symbol_table->tbl = (Symbol*)malloc(1*sizeof(Symbol));
+    if (symbol_table->tbl == NULL)
+        allocation_failed();
+    symbol_table->cap = 1;
+    symbol_table->len = 0;
+    symbol_table->mode = mode;
+    return symbol_table;
 }
 
 /* Frees the given SymbolTable and all associated memory. */
 void free_table(SymbolTable* table) {
     /* YOUR CODE HERE */
+    free(table->tbl);
+    free(table);
 }
 
 /* Adds a new symbol and its address to the SymbolTable pointed to by TABLE. 
@@ -66,7 +77,28 @@ void free_table(SymbolTable* table) {
  */
 int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
     /* YOUR CODE HERE */
-    return -1;
+    if (table->len == table->cap){
+        SymbolTable* tbl_dup = table->tbl; 
+        table->tbl = realloc(table->tbl, table->len*2);
+        if (table->tbl == NULL)
+            allocation_failed();
+
+        // adjust params
+        table->cap = tbl_dup->cap * 2;
+        // free original mem if rellocate
+        if (table->tbl != tbl_dup){
+            memcpy(table->tbl, tbl_dup, sizeof(Symbol*) * tbl_dup->len);
+            free(tbl_dup);
+        }
+    }
+
+    // add elem
+    Symbol* sym = malloc(sizeof(Symbol));
+    sym->name = name;
+    sym->addr = addr;
+    *(table->tbl + (table->len++)) = *sym;
+
+    return 0;
 }
 
 /* Returns the address (byte offset) of the given symbol. If a symbol with name
@@ -74,6 +106,10 @@ int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
  */
 int64_t get_addr_for_symbol(SymbolTable* table, const char* name) {
     /* YOUR CODE HERE */
+    for (int i = 0; i < table->len; i++){
+        if (strcmp(table->tbl + i, name) == 0)
+            return (table->tbl + i)->addr;
+    }
     return -1;   
 }
 
@@ -82,4 +118,7 @@ int64_t get_addr_for_symbol(SymbolTable* table, const char* name) {
  */
 void write_table(SymbolTable* table, FILE* output) {
     /* YOUR CODE HERE */
+    for (int i = 0; i < table->len; i++){
+        write_symbol( output, (table->tbl + i)->addr, (table->tbl + i)->name);
+    }
 }
