@@ -7,9 +7,11 @@ all: assembler
 
 check: test-assembler
 
-test-table: table.h
-	$(CC) $(CFLAGS) -o table-test.c
-	# ./table-test
+# table.o: 
+	# $(CC) $(CFLAGS) -o src/tables.c
+test-table: 
+	$(CC) $(CFLAGS) -o testtable src/table-test.c $(ASSEMBLER_FILES)
+	./testtable
 
 assembler: clean
 	$(CC) $(CFLAGS) -o assembler assembler.c $(ASSEMBLER_FILES)

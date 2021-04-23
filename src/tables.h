@@ -2,6 +2,7 @@
 #define TABLES_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 extern const int SYMTBL_NON_UNIQUE;      // allows duplicate names in table
 extern const int SYMTBL_UNIQUE_NAME;     // duplicate names not allowed

@@ -34,6 +34,7 @@ void write_symbol(FILE* output, uint32_t addr, const char* name) {
  * Symbol Table Functions
  *******************************/
 const int INIT_SIZE = 1;
+const int FACTOR = 2;
 /* Creates a new SymbolTable containg 0 elements and returns a pointer to that
    table. Multiple SymbolTables may exist at the same time. 
    If memory allocation fails, you should call allocation_failed(). 
@@ -42,13 +43,13 @@ const int INIT_SIZE = 1;
  */
 SymbolTable* create_table(int mode) {
     /* YOUR CODE HERE */
-    SymbolTable* symbol_table = malloc(sizeof(SymbolTable));
+    SymbolTable* symbol_table = (SymbolTable*)malloc(sizeof(SymbolTable));
     if (symbol_table == NULL)
         allocation_failed();
     symbol_table->tbl = (Symbol*)malloc(1*sizeof(Symbol));
     if (symbol_table->tbl == NULL)
         allocation_failed();
-    symbol_table->cap = 1;
+    symbol_table->cap = INIT_SIZE;
     symbol_table->len = 0;
     symbol_table->mode = mode;
     return symbol_table;
@@ -57,6 +58,9 @@ SymbolTable* create_table(int mode) {
 /* Frees the given SymbolTable and all associated memory. */
 void free_table(SymbolTable* table) {
     /* YOUR CODE HERE */
+    for (int i = 0; i<table->len;i++){
+        free((table->tbl+i)->name);
+    }
     free(table->tbl);
     free(table);
 }
@@ -77,26 +81,45 @@ void free_table(SymbolTable* table) {
  */
 int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
     /* YOUR CODE HERE */
+
+    if (table->mode == SYMTBL_UNIQUE_NAME){
+        if (get_addr_for_symbol(table, name) != -1){
+            name_already_exists(name);
+            return -1;
+        }
+    }
+    if (addr%4 != 0){
+        addr_alignment_incorrect();
+        return -1;
+    }
+
+
     if (table->len == table->cap){
+        
         SymbolTable* tbl_dup = table->tbl; 
-        table->tbl = realloc(table->tbl, table->len*2);
+        int full = table->len;
+        // printf("tbldup: %p\n", tbl_dup);
+        table->tbl = (Symbol*)realloc(table->tbl, full*FACTOR*sizeof(Symbol));
+        // printf("tbldup: %p\n", tbl_dup);
+        // printf("tbl: %p\n", table->tbl);
         if (table->tbl == NULL)
             allocation_failed();
 
         // adjust params
-        table->cap = tbl_dup->cap * 2;
-        // free original mem if rellocate
-        if (table->tbl != tbl_dup){
-            memcpy(table->tbl, tbl_dup, sizeof(Symbol*) * tbl_dup->len);
-            free(tbl_dup);
-        }
+        table->cap = full * FACTOR;
+       
     }
 
     // add elem
-    Symbol* sym = malloc(sizeof(Symbol));
-    sym->name = name;
+    Symbol* sym = (table->tbl + (table->len));
+    sym->name = (char*)malloc(sizeof(char)*(strlen(name)+1));
+    strcpy(sym->name, name);
     sym->addr = addr;
-    *(table->tbl + (table->len++)) = *sym;
+    // *(table->tbl + (table->len)) = *sym;
+    // printf("%d\n", table->cap);
+    printf("%s\n", sym->name);
+    // printf("%d\n", (table->tbl + (table->len))->addr);
+    table->len++;
 
     return 0;
 }
@@ -107,7 +130,10 @@ int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
 int64_t get_addr_for_symbol(SymbolTable* table, const char* name) {
     /* YOUR CODE HERE */
     for (int i = 0; i < table->len; i++){
-        if (strcmp(table->tbl + i, name) == 0)
+        // printf("%s %s\n", (table->tbl+i)->name, name);
+        // printf("strcmp: %d\n", strcmp(((table->tbl + i)->name), name));
+
+        if (strcmp((table->tbl + i)->name, name) == 0)
             return (table->tbl + i)->addr;
     }
     return -1;   

@@ -91,6 +91,9 @@ int translate_inst(FILE* output, const char* name, char** args, size_t num_args,
  */
 int write_rtype(uint8_t funct, FILE* output, char** args, size_t num_args) {
     // Perhaps perform some error checking?
+    if (num_args != 3){
+
+    }
 
     int rd = translate_reg(args[0]);
     int rs = translate_reg(args[1]);
@@ -110,6 +113,7 @@ int write_rtype(uint8_t funct, FILE* output, char** args, size_t num_args) {
  */
 int write_shift(uint8_t funct, FILE* output, char** args, size_t num_args) {
 	// Perhaps perform some error checking?
+    // if 
 
     long int shamt;
     int rd = translate_reg(args[0]);
