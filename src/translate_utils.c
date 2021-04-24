@@ -59,7 +59,7 @@ int translate_num(long int* output, const char* str, long int lower_bound,
         return -1;
     }
     /* YOUR CODE HERE */
-    long int ans = strtol(str, NULL, 0);
+    long int ans = strtol(str, NULL, 2);
     if (ans < lower_bound || ans > upper_bound)
         return -1;
 

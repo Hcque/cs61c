@@ -41,15 +41,61 @@
 unsigned write_pass_one(FILE* output, const char* name, char** args, int num_args) {
     if (strcmp(name, "li") == 0) {
         /* YOUR CODE HERE */
+        if (num_args != 2)
+            return 0;
+        long int immed;
+        int err = translate_num(&immed, args[1], INT16_MIN, INT16_MAX);
+        if (err != -1){
+            // immed is 16-bits
+            // addiu 
+            char *new_args[3];
+            new_args[0] = "$0";
+            new_args[1] = args[0];
+            new_args[2] = args[1];
+            write_inst_string(output, "addiu", new_args, 3);
+            return 1;
+        }
+        else {
+            // lui
+            char *new_args[2];
+            new_args[0] = args[0];
+            new_args[1] = (immed | 0xffffffff) >> 16;
+            write_inst_string(output, "lui", new_args, 2);
+
+            // ori
+            char *new_args2[3];
+            new_args2[0] = args[0];
+            new_args2[1] = args[0];
+            new_args2[2] = (immed | 0xffff) ;
+            write_inst_string(output, "ori", new_args2, 3);
+            return 2;
+        }
+
         return 0;
     } else if (strcmp(name, "blt") == 0) {
         /* YOUR CODE HERE */
-        return 0;
+        if (num_args != 3)
+            return 0;
+ 
+        char *new_args[3];
+        new_args[0] = args[0];
+        new_args[1] = args[0];
+        new_args[2] = args[1];
+        write_inst_string(output, "slt", new_args, 3);
+        char *new_args2[3];
+        new_args2[0] = args[0];
+        new_args2[1] = "$0";
+        new_args2[2] = args[2];
+        write_inst_string(output, "bne", new_args2, 3);
+        return 2;
     } else {
         write_inst_string(output, name, args, num_args);
         return 1;
     }
 }
+
+int write_Itype( uint8_t opcode, FILE* output, char** args, size_t num_args, int signext);
+int write_Jtype( uint8_t opcode, FILE* output, char** args, size_t num_args);
 
 /* Writes the instruction in hexadecimal format to OUTPUT during pass #2.
    
@@ -79,9 +125,73 @@ int translate_inst(FILE* output, const char* name, char** args, size_t num_args,
     else if (strcmp(name, "sltu") == 0)  return write_rtype (0x2b, output, args, num_args);
     else if (strcmp(name, "sll") == 0)   return write_shift (0x00, output, args, num_args);
     /* YOUR CODE HERE */
+    else if (strcmp(name, "jr") == 0)   return write_jr (0x08, output, args, num_args);
+    else if (strcmp(name, "addiu") == 0)   return write_Itype (0x9, output, args, num_args, 0);
+    else if (strcmp(name, "ori") == 0)   return write_Itype (0xd, output, args, num_args, 1);
+    else if (strcmp(name, "lui") == 0)   return write_Itype (0xf, output, args, num_args, 0);
+    else if (strcmp(name, "lb") == 0)   return write_Itype (0x20, output, args, num_args, 1);
+    else if (strcmp(name, "lbu") == 0)   return write_Itype (0x24, output, args, num_args, 1);
+    else if (strcmp(name, "lw") == 0)   return write_Itype (0x23, output, args, num_args, 1);
+    else if (strcmp(name, "sb") == 0)   return write_Itype (0x28, output, args, num_args, 1);
+    else if (strcmp(name, "sw") == 0)   return write_Itype (0x2b, output, args, num_args, 1);
+    else if (strcmp(name, "beq") == 0)   return write_Itype (0x4, output, args, num_args, 0);
+    else if (strcmp(name, "bne") == 0)   return write_Itype (0x5, output, args, num_args, 0);
+    else if (strcmp(name, "j") == 0)   return write_Jtype (0x2, output, args, num_args);
+    else if (strcmp(name, "jal") == 0)   return write_Jtype (0x3, output, args, num_args);
     else                                 return -1;
 }
 
+int write_Jtype( uint8_t opcode, FILE* output, char** args, size_t num_args) {
+    if (num_args != 1)
+      return -1;
+
+    long int immed;
+    int err = translate_num(&immed, args[1], 0, (1<<27)-1);
+    if (err < 0)
+        return -1;
+
+    uint32_t instruction = opcode << 26 | immed ;
+    write_inst_hex(output, instruction);
+    return 0;
+}
+
+int write_Itype( uint8_t opcode, FILE* output, char** args, size_t num_args, int signext) {
+    if (num_args != 3)
+      return -1;
+
+    int rs = translate_reg(args[0]);
+    int rt = translate_reg(args[1]);
+    if (rs < 0 | rt < 0) return -1;
+    // int rs = translate_reg(args[2]);
+    long int immed;
+    int err;
+    if (signext)
+        err = translate_num(&immed, args[2],  INT16_MIN, INT16_MAX);
+    else
+        err = translate_num(&immed, args[2],  0, UINT16_MAX);
+    if (err < 0)
+        return -1;
+    if (signext == 1){
+        if (immed < 0) 
+            immed &= 0xffff; // keep only 16 bits
+    }
+    uint32_t instruction = opcode << 26 | rs << 21  | rt << 16 | immed ;
+    write_inst_hex(output, instruction);
+    return 0;
+}
+
+int write_jr(uint8_t funct, FILE* output, char** args, size_t num_args) {
+    if (num_args != 1)
+      return -1;
+
+    int rs = translate_reg(args[0]);
+    if (rs < 0)
+        return -1;
+    uint8_t opcode = 0b000000;
+    uint32_t instruction = opcode << 26 | rs << 21  | funct ;
+    write_inst_hex(output, instruction);
+    return 0;
+}
 /* A helper function for writing most R-type instructions. You should use
    translate_reg() to parse registers and write_inst_hex() to write to 
    OUTPUT. Both are defined in translate_utils.h.
@@ -91,15 +201,15 @@ int translate_inst(FILE* output, const char* name, char** args, size_t num_args,
  */
 int write_rtype(uint8_t funct, FILE* output, char** args, size_t num_args) {
     // Perhaps perform some error checking?
-    if (num_args != 3){
-
-    }
+    if (num_args != 3)
+        return -1;
 
     int rd = translate_reg(args[0]);
     int rs = translate_reg(args[1]);
     int rt = translate_reg(args[2]);
 
-    uint32_t instruction = 0;
+    uint8_t opcode = 0b000000;
+    uint32_t instruction = opcode << 26 | rs << 21 | rt << 16 | rt << 11 | funct;
     write_inst_hex(output, instruction);
     return 0;
 }
@@ -113,14 +223,17 @@ int write_rtype(uint8_t funct, FILE* output, char** args, size_t num_args) {
  */
 int write_shift(uint8_t funct, FILE* output, char** args, size_t num_args) {
 	// Perhaps perform some error checking?
-    // if 
+    if (num_args != 3)
+        return -1;
 
     long int shamt;
     int rd = translate_reg(args[0]);
     int rt = translate_reg(args[1]);
     int err = translate_num(&shamt, args[2], 0, 31);
 
-    uint32_t instruction = 0;
+    uint8_t opcode = 0b000000;
+    uint8_t rs = 0b00000;
+    uint32_t instruction = opcode << 26 | rs << 21 | rt << 16 | rd << 11 | shamt << 5 | funct;
     write_inst_hex(output, instruction);
     return 0;
 }

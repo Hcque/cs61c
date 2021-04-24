@@ -121,7 +121,40 @@ static int add_if_label(uint32_t input_line, char* str, uint32_t byte_offset,
  */
 int pass_one(FILE* input, FILE* output, SymbolTable* symtbl) {
     /* YOUR CODE HERE */
-    return -1;
+
+    char buf[BUF_SIZE];
+    uint32_t line_num = 0;
+    int error = 0;
+    for (;;){
+        if (fgets(buf, BUF_SIZE, input) == NULL)
+            break;
+
+       line_num++;
+       skip_comment(buf);
+       add_if_label(line_num, buf, line_num*4 + 4, symtbl);
+
+        char *pch = strtok(buf, " ,$");
+        if (pch == NULL)
+            continue;
+        char name[8];
+        strcpy(name, pch);
+        int num_args = 0;
+        char* args[MAX_ARGS];
+        while (pch != NULL){
+            // printf("%s\n", pch);
+            pch = strtok(NULL, " ,$");
+            args[num_args++] = pch;
+        }
+        if (num_args > MAX_ARGS){
+            raise_extra_arg_error(line_num, args[3]);
+            error = 1;
+            continue;
+        }
+        if (write_pass_one(output, name, args, num_args) == 0)
+            error = 1;
+    }
+    if (error) return -1;
+    return 0;
 }
 
 /* Reads an intermediate file and translates it into machine code. You may assume:
@@ -139,25 +172,46 @@ int pass_two(FILE *input, FILE* output, SymbolTable* symtbl, SymbolTable* reltbl
     // Since we pass this buffer to strtok(), the chars here will GET CLOBBERED.
     char buf[BUF_SIZE];
     // Store input line number / byte offset below. When should each be incremented?
-
+    uint32_t line_num = 0;
+    int offset = 0;
+    int error = 0;
+    for (;;){
     // First, read the next line into a buffer.
-
+    if (fgets(buf, BUF_SIZE, input) == NULL)
+        break;
     // Next, use strtok() to scan for next character. If there's nothing,
     // go to the next line.
-
+    char *pch = strtok(buf, " ,$");
+    if (pch == NULL){
+        printf("GET NULL line");
+        exit(-1);
+    }
     // Parse for instruction arguments. You should use strtok() to tokenize
     // the rest of the line. Extra arguments should be filtered out in pass_one(),
     // so you don't need to worry about that here.
+    char name[8];
+    strcpy(name, pch);
+
     char* args[MAX_ARGS];
     int num_args = 0;
+    while (pch != NULL){
+        // printf("%s\n", pch);
+        pch = strtok(NULL, " ,$");
+        args[num_args++] = pch;
+    }
 
     // Use translate_inst() to translate the instruction and write to output file.
     // If an error occurs, the instruction will not be written and you should call
     // raise_inst_error(). 
-
+    if (translate_inst(output, name, args, num_args, (line_num-1)*4, symtbl, reltbl) == -1){
+        raise_inst_error(line_num, name, args, num_args);
+        error = 1;
+    }
+    line_num++;
     // Repeat until no more characters are left, and the return the correct return val
-
-    return -1;
+    }
+    if (error == 1) return -1;
+    return 0;
 }
 
 /*******************************
