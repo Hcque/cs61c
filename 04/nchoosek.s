@@ -67,6 +67,13 @@ main:
 nchoosek:
 	# prologue
 	### YOUR CODE HERE ###
+	sub $sp, $sp, 24
+	sw $ra, 20($sp)
+	sw $a0, 0($sp)
+	sw $a1, 4($sp)
+	sw $s0, 8($sp)
+	sw $s1, 12($sp)
+	sw $s2, 16($sp)
     
 	beq	$a1, $0, return1
 	beq	$a0, $a1, return1
@@ -88,10 +95,19 @@ return0:
 	j	return
 return1:
 	addi	$v0, $0, 1
-
+	j return
 return:
 	# epilogue
 	### YOUR CODE HERE ###
+	lw $ra, 20($sp)
+	lw $s2, 16($sp)
+	lw $s1, 12($sp)
+	lw $s0, 8($sp)
+	lw $a1, 4($sp)
+	lw $a0, 0($sp)
+	add $sp, $sp, 24
+	jr $ra
+	
 
 print_int:
 	li	$v0, 1

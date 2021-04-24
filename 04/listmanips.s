@@ -22,6 +22,8 @@ main:	jal	create_default_list
 	addu	$a0, $s0, $0	# load the address of the first node into $a0
 	# load the address of the function into $a1 (check out la)
 	### YOUR CODE HERE ###
+	la $a1, square
+		
 	jal	map
 
 	# print "list after: "
@@ -37,10 +39,11 @@ main:	jal	create_default_list
 	syscall
 
 map:
-	addiu	$sp, $sp, -12
+	addiu	$sp, $sp, -16
 	sw	$ra, 0($sp)
 	sw	$s1, 4($sp)
 	sw	$s0, 8($sp)
+	sw $a0, 12($sp)
 
 	beq	$a0, $0, done	# if we were given a null pointer, we're done.
 
@@ -50,22 +53,29 @@ map:
 	# remember that each node is 8 bytes long: 4 for the value followed by 4 for the pointer to next
 	# load the value of the current node into $a0
 	### YOUR CODE HERE ###
+	lw $a0, 0($a0)
 	# call the function on that value.
 	### YOUR CODE HERE ###
+#	la $t0, $a1
+	jalr $a1
 	# store the returned value back into the node
 	### YOUR CODE HERE ###
+	sw $v0, 0($a0)
 	# load the address of the next node into $a0
 	### YOUR CODE HERE ###
+	lw $a0, 4($a0)
 	# put the address of the function back into $a1 to prepare for the recursion
 	### YOUR CODE HERE ###
+	#la $a1, $a1
 	#recurse
 	### YOUR CODE HERE ###
-
+	j map
 done:
+	lw $a0, 12($sp)
 	lw	$s0, 8($sp)
 	lw	$s1, 4($sp)
 	lw	$ra, 0($sp)
-	addiu	$sp, $sp, 12
+	addiu	$sp, $sp, 16
 	jr	$ra
 
 square:
