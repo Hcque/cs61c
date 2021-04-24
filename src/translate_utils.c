@@ -53,17 +53,51 @@ int is_valid_label(const char* str) {
    function returns 0 if the conversion proceeded without errors, or -1 if an 
    error occurred.
  */
+int allzero(const char* str){
+    for (int j = 0; j < strlen(str); j++){
+        if (*(str+j) != '0')
+            return -1;
+        
+    }
+    return 1;
+}
+
+int contain_invalid(const char* str){
+    for (int j = 2; j < strlen(str); j++){
+            if (!(*(str+j) >= '0' || *(str+j) <= '9' || *(str+j) >= 'a' || *(str+j) <= 'f' 
+            || *(str+j) >= 'A' || *(str+j) <= 'F'))
+                return 1;
+    }
+    return 0;
+}
+
 int translate_num(long int* output, const char* str, long int lower_bound, 
     long int upper_bound) {
     if (!str || !output) {
         return -1;
     }
     /* YOUR CODE HERE */
-    long int ans = strtol(str, NULL, 2);
-    if (ans < lower_bound || ans > upper_bound)
+    if (allzero(str) == 1) {
+        *output = 0;
+        return 0;
+    }
+    if (contain_invalid(str) == 1)
         return -1;
 
-    return ans;
+    int cvt = 10;
+    if (*str == '0' && *(str+1) == 'x')
+        cvt = 16;
+    if (*str == '0' && *(str+1) == 'b')
+        cvt = 2;
+    int ans = strtol(str, NULL, cvt);
+    if (ans == 0)
+        return -1;
+    if (ans < lower_bound || ans > upper_bound)
+        return -1;
+    printf("ans: %d\n", ans);
+    printf("ans: %d\n", contain_invalid(str));
+    *output = ans;
+    return 0;
 }
 
 /* Translates the register name to the corresponding register number. Please

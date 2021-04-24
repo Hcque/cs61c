@@ -93,7 +93,6 @@ int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
         return -1;
     }
 
-
     if (table->len == table->cap){
         
         SymbolTable* tbl_dup = table->tbl; 
@@ -117,7 +116,7 @@ int add_to_table(SymbolTable* table, const char* name, uint32_t addr) {
     sym->addr = addr;
     // *(table->tbl + (table->len)) = *sym;
     // printf("%d\n", table->cap);
-    printf("%s\n", sym->name);
+    // printf("%s\n", sym->name);
     // printf("%d\n", (table->tbl + (table->len))->addr);
     table->len++;
 
