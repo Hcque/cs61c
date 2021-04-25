@@ -49,6 +49,19 @@
 #------------------------------------------------------------------------------
 addr_for_symbol:
 	# YOUR CODE HERE
+	beq $a0, 0, notfound
+loop:
+	lw $t0, 4($a0)
+	lw $t1, 0($t0)
+	beq $t1, $a1, found
+	addi $a1, $a1, 12
+	bne $a1, $0, loop
+found:
+	addi $v0, $a1, 0
+	j return
+notfound:
+	addi $v0, $0, -1
+return:
 	jr $ra
 	
 #------------------------------------------------------------------------------
@@ -71,6 +84,22 @@ addr_for_symbol:
 #------------------------------------------------------------------------------
 add_to_list:	
 	# YOUR CODE HERE
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
+	
+	j new_node
+	sw $a1, 0($v0)
+	sw $a0, 8($v0)
+	addi $t0, v0, 0
+	
+	addi $a0, $a2, 0
+	j copy_of_str
+	sw $v0, 4(t0)
+	
+	addi $v0, t0, 0  # store return pointer
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
+	
 	jr $ra
 
 ###############################################################################

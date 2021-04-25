@@ -1,4 +1,4 @@
-# CS 61C Spring 2015 Project 1-2 
+# CS 61C Summer 2015 Project 2-2 
 # linker-tests/test_string.s
 
 #==============================================================================

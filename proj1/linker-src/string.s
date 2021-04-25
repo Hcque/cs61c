@@ -29,11 +29,14 @@ tab:	.asciiz "\t"
 strlen:
 	# YOUR CODE HERE
 	addi $t1, $0, 0
-strlen_loop:
 	lb $t0, 0($a0)
+	beq $t0, $0, return
+strlen_loop:
 	addiu $a0, $a0, 1
 	addiu $t1, $t1, 1
+	lb $t0, 0($a0)
 	bne $t0, $0, strlen_loop
+return:
 	addiu $v0, $t1, 0
 	jr $ra
 
@@ -74,7 +77,22 @@ strcpy_loop:
 #------------------------------------------------------------------------------
 copy_of_str:
 	# YOUR CODE HERE
+	subi $sp, $sp, 4
+	sw $ra, 0($sp)
 	
+	j strlen
+	addi $a2, $v0, 0
+	addi $a1, $a0, 0
+	
+	addi $a0, $a2, 0
+	li $v0, 9
+	syscall
+	
+	addi $a0, $v0, 0
+	j strncpy
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
 	jr $ra
 
 ###############################################################################
