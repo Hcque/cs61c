@@ -96,7 +96,7 @@ copy_of_str:
 	jal strncpy
 	# v0 done
 	
-	lw $s0, 8($sp)		# Failing basic test because this value was not saved properly
+	lw $s0, 8($sp)		
 	#lw $a0, 4($sp)
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 12

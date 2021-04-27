@@ -45,24 +45,39 @@
 #  $a0 = pointer to a SymbolList (NULL indicates empty list)
 #  $a1 = name to look for
 #
+	
 # Returns:  address of symbol if found or -1 if not found
 #------------------------------------------------------------------------------
 addr_for_symbol:
+	subi $sp, $sp, 12  # BEGIN addsym
+	sw $s1, 8($sp)
+	sw $s0, 4($sp)
+	sw $ra, 0($sp)
 	# YOUR CODE HERE
-	beq $a0, 0, notfound
-loop:
-	lw $t0, 4($a0)
-	lw $t1, 0($t0)
-	beq $t1, $a1, found
-	addi $a1, $a1, 12
-	bne $a1, $0, loop
-found:
-	addi $v0, $a1, 0
-	j return
-notfound:
+	addi $s0, $a0, 0
+	addi $s1, $a1, 0
+	beq $s0, 0, notfound_afs
+loop_afs:	
+	lw $a0, 4($s0)  # addr for char*
+	addi $a1, $s1, 0 
+	jal streq
+	beq $v0, $0, found_afs
+	
+	lw $s0, 8($s0) #update a0
+	bne $s0, $0, loop_afs
+	j notfound_afs
+found_afs:
+	lw $v0, 0($s0) # s0 is only valid
+	j return_afs
+notfound_afs:
 	addi $v0, $0, -1
-return:
-	jr $ra
+return_afs:
+	lw $s1, 8($sp)
+	lw $s0, 4($sp)
+	lw $ra, 0($sp)
+	addi $sp, $sp, 12
+	jr $ra	# END addsym
+
 	
 #------------------------------------------------------------------------------
 # function add_to_list()
@@ -84,23 +99,28 @@ return:
 #------------------------------------------------------------------------------
 add_to_list:	
 	# YOUR CODE HERE
-	subi $sp, $sp, 4
+	subi $sp, $sp, 12  # BEGIN addtolist
 	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	addi $s0, $a0, 0
 	
-	j new_node
-	sw $a1, 0($v0)
-	sw $a0, 8($v0)
-	addi $t0, v0, 0
+	jal new_node
+	sw $a1, 0($v0) # store the addr
+	sw $s0, 8($v0)  # store ptr of list to  "next field"
+	addi $s1, $v0, 0 # later this as the head of list
 	
 	addi $a0, $a2, 0
-	j copy_of_str
-	sw $v0, 4(t0)
-	
-	addi $v0, t0, 0  # store return pointer
+	jal copy_of_str
+	sw $v0, 4($s1)  # store the copy of str (pointer)
+
+	addi $v0, $s1, 0  # store return pointer
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
 	lw $ra, 0($sp)
-	addi $sp, $sp, 4
+	addi $sp, $sp, 12
 	
-	jr $ra
+	jr $ra	# END addtolist
 
 ###############################################################################
 #                 DO NOT MODIFY ANYTHING BELOW THIS POINT                       
