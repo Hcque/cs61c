@@ -37,6 +37,30 @@
 #------------------------------------------------------------------------------
 hex_to_str:
 	# YOUR CODE HERE
+	addi $t1, $0, 8
+	addi $t2, $a1, 0
+	addi $t4, $0, 97
+	addi $v0, a1, 0
+loop:
+	sll $a0, $a0, 4
+	andi $t3, $a0, 15
+	blt $t3, $t4, num
+	addi $t3, $t3, 97
+mainloop:
+	sw $t3, 0($t2)
+	addi $t2, $t2, 1
+	subi $t1, $t1, 1
+	bne $t1, $0, loop
+	j return
+num:
+	addi $t3, $t3, 48
+	j mainloop
+return:
+	addi $t1, $0, 110
+	sw $t1, 1($t2)
+	sw $0, 2($t2)
+	
+	# v0 already prepared
 	jr $ra
 
 ###############################################################################

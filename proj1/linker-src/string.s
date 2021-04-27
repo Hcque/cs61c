@@ -53,7 +53,7 @@ return:
 strncpy:
 	# YOUR CODE HERE
 	addi $t1, $0, 0
-	addiu $v0, $a0, 0
+	addiu $v0, $a0, 0 # store return value 
 strcpy_loop:
 	lb $t0, 0($a1)
 	sb $t0, 0($a0)
@@ -75,25 +75,32 @@ strcpy_loop:
 #
 # Returns: pointer to the copy of the string
 #------------------------------------------------------------------------------
-copy_of_str:
+copy_of_str:			
 	# YOUR CODE HERE
-	subi $sp, $sp, 4
+	addiu $sp, $sp, -12
 	sw $ra, 0($sp)
+	#sw $a0, 4($sp)
+	sw $s0, 8($sp)
 	
-	j strlen
-	addi $a2, $v0, 0
-	addi $a1, $a0, 0
-	
-	addi $a0, $a2, 0
+	add $s0, $a0, $0
+	jal strlen
+	addi $a2, $v0, 0	# string len 
+	addi $a1, $s0, 0	# source a0 str to copy, not changed
+
+	addi $a0, $a2, 0	# malloc len
 	li $v0, 9
 	syscall
-	
+
 	addi $a0, $v0, 0
-	j strncpy
+
+	jal strncpy
+	# v0 done
 	
+	lw $s0, 8($sp)		# Failing basic test because this value was not saved properly
+	#lw $a0, 4($sp)
 	lw $ra, 0($sp)
-	addi $sp, $sp, 4
-	jr $ra
+	addiu $sp, $sp, 12
+	jr $ra		# cpy of str END
 
 ###############################################################################
 #                 DO NOT MODIFY ANYTHING BELOW THIS POINT                       

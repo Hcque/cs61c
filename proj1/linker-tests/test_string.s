@@ -88,7 +88,7 @@ test_strncpy:
 # Tests copy_of_str()
 #-------------------------------------------
 test_copy_of_str:
-	addiu $sp, $sp, -12
+	addiu $sp, $sp, -12	# test cpyof str BEDGIN
 	sw $s0, 8($sp)
 	sw $s1, 4($sp)
 	sw $ra, 0($sp)
@@ -108,8 +108,8 @@ test_copy_of_str:
 	lw $s0, 8($sp)
 	lw $s1, 4($sp)
 	lw $ra, 0($sp)
-	addiu $sp, $sp, 4
-	jr $ra
+	addiu $sp, $sp, 12
+	jr $ra			# test cpyof str END
 
 .data
 test_header_name:	.asciiz "Running util tests:\n"
