@@ -46,6 +46,16 @@ relocLabel: .asciiz ".relocation"
 #------------------------------------------------------------------------------
 inst_needs_relocation:
 	# YOUR CODE HERE
+	# test jal and j instruction
+	srl $t0, $a0, 26
+	addi $t1, $0, 2
+	beq $t0, $t1, reloc
+	addi $t1, $0, 3
+	beq $t0, $t1, reloc
+	addi $v0, $0, 0
+	jr $ra
+reloc:
+	addi $v0, $0, 1
 	jr $ra
 	
 #------------------------------------------------------------------------------
@@ -68,6 +78,40 @@ inst_needs_relocation:
 #------------------------------------------------------------------------------
 relocate_inst:
 	# YOUR CODE HERE
+	subi $sp, $sp, 20
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $s2, 12($sp)
+	sw $s3, 16($sp)
+	
+	addi $s0, $a0, 0
+	addi $s1, $a1, 0
+	addi $s2, $a2, 0
+	addi $s3, $a3, 0
+	
+	addi $a0, $a3, 0
+	# same a1
+	jal symbol_for_addr # v0 is the name 
+	beq $v0, $0, error
+	addi $a1, $v0, 0
+	addi $a0, $s2, 0
+	jal addr_for_symbol
+	addi $t0, $0, -1
+	beq $v0, $t0, error
+	srl $v0, $v0, 2 # bytes addr
+	andi $s0, $s0, 0xfc000000
+	or $v0, $s0, $v0
+	j normal
+error:
+	addi $v0, $0, -1
+normal:					
+	lw $ra, 0($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $s2, 12($sp)
+	lw $s3, 16($sp)
+	addi $sp, $sp, 20
 	jr $ra
 
 ###############################################################################
@@ -155,7 +199,7 @@ atsl_next:
 	move $a0, $v1
 	jal tokenize
 	move $a0, $s1		# $a0 = symbol list
-	addu $a1, $s2, $v0		# $a1 = symbol offset (bytes)
+	addu $a1, $s2, $v0	# $a1 = symbol offset (bytes)
 	move $a2, $v1 		# $a2 = symbol name (string)
 	jal add_to_list
 	move $s1, $v0

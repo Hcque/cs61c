@@ -35,32 +35,44 @@
 #
 # Returns: none
 #------------------------------------------------------------------------------
+# equiv c code
+# count = 8
+# cmp = 10
+# ptr = B
+# while (count > 0)
+# 	t = A >> 28
+# 	if (t < 10) t = t + 10
+# 	else t = t + 97
+#	*ptr = t
+# 	ptr++
+#	count--
+#	A = A << 4
+# -------------------------
 hex_to_str:
 	# YOUR CODE HERE
-	addi $t1, $0, 8
-	addi $t2, $a1, 0
-	addi $t4, $0, 97
-	addi $v0, a1, 0
-loop:
-	sll $a0, $a0, 4
-	andi $t3, $a0, 15
-	blt $t3, $t4, num
-	addi $t3, $t3, 97
-mainloop:
-	sw $t3, 0($t2)
-	addi $t2, $t2, 1
-	subi $t1, $t1, 1
-	bne $t1, $0, loop
-	j return
-num:
-	addi $t3, $t3, 48
-	j mainloop
-return:
-	addi $t1, $0, 110
-	sw $t1, 1($t2)
-	sw $0, 2($t2)
 	
-	# v0 already prepared
+	addi $t2, $0, 8
+	addi $t4, $0, 10
+	addi $t5, $a1, 0 # t5 is ptr
+loop:
+	srl $t3, $a0, 28  # t3 = a0 >> 28, highest 4 bits
+	blt $t3, $t4, num  # decode by 0-9 or a-f
+	addi $t3, $t3, -10
+	addi $t3, $t3, 97  # 'd'	
+writeloop:
+	sb $t3, 0($t5) # t5 is the ptr to buffer
+	addi $t5, $t5, 1
+	addi $t2, $t2, -1
+	sll $a0, $a0, 4
+	bne $t2, 0, loop
+	j return_hex
+num:	
+	addi $t3, $t3, 48 # '2'
+	j writeloop
+return_hex:
+	addi $t1, $0, 10 # add '\n'
+	sb $t1, 1($t5)
+	sb $0, 2($t5)
 	jr $ra
 
 ###############################################################################
